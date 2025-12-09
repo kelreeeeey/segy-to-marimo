@@ -1,0 +1,25 @@
+[project]
+name = "segy-to-marimo"
+version = "0.0.1"
+description = "working with segy data in marimo. A smoll wrapper for around some things."
+readme = "README.md"
+authors = [ { name = "kelreeeeey", email = "kelreytaufiq08@mail.ugm.ac.id" }, ]
+requires-python = ">=3.11"
+dependencies = [
+    "segfast >= 1.0.0",
+    "polars",
+    "marimo >= 0.14.7",
+    # these have to come last
+    "numpy == 1.24.6", # it has to be 1.24.6, for peace of mind, (you can change it tho!)
+    "requests == 2.32.4",
+]
+
+[tool.marimo.runtime]
+output_max_bytes = 50_000_000
+
+[tool.marimo.snippets]
+include_default_snippets = false  # Whether to include marimo's default snippets (defaults to true)
+custom_paths = [
+  "C:/Users/LediaPed/AppData/Local/nvim/snippets",
+  "./snippets",
+]  # List of paths to directories containing custom snippets
