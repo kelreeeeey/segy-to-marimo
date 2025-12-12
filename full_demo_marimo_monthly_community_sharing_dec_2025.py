@@ -4,7 +4,7 @@ __generated_with = "0.18.4"
 app = marimo.App(width="columns", sql_output="polars")
 
 
-@app.cell(column=0)
+@app.cell(column=0, hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Utility, more like a small wrapper
@@ -24,15 +24,23 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     the_wrapper = mo.watch.file("./thewrapper.py")
 
-    mo.ui.code_editor(the_wrapper.read_text())
+    mo.ui.code_editor(the_wrapper.read_text(), language="python", theme="dark")
     return
 
 
 @app.cell(column=1)
+def _(mo):
+    mo.md(r"""
+    # Demo 1 - Working with SEG-Y Data in Python
+    """).center()
+    return
+
+
+@app.cell
 def _(Path, mo):
     SEGYDATA_PATH = list(Path("./example-data").rglob("*.sgy")) + list(Path("./example-data").rglob("*.segy"))
     SEGYDATA_PATH = {x.name:x for x in SEGYDATA_PATH}
@@ -228,7 +236,7 @@ def _(mo, trace_header):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(global_coords, local_coords, mo, np, plt):
     _f, _ax = plt.subplots(1, 2, figsize=(10, 10), layout="tight")
     _x, _y = np.meshgrid(local_coords.crosslines, local_coords.inlines)
@@ -243,7 +251,7 @@ def _(global_coords, local_coords, mo, np, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(global_coords, mo, plt, trace_sequence):
     plt.figure(figsize=(5, 10), layout="tight")
     plt.title("Seismic Traces Position")
@@ -261,11 +269,23 @@ def _(cube_shape):
 
 
 @app.cell
+def _(segy_data):
+    segy_data
+    return
+
+
+@app.cell
 def _(cube_shape, get_3d_cube, segy_data):
     seismic_3d, seismic_metadata = get_3d_cube(segy_data, *cube_shape)
     # print(type(seismic_3d))
     # print(type(seismic_metadata), seismic_metadata)
     return (seismic_3d,)
+
+
+@app.cell
+def _(seismic_3d):
+    seismic_3d.shape
+    return
 
 
 @app.cell
@@ -287,7 +307,53 @@ def _(mo, time_slice_plot, traces_plot):
 
 
 @app.cell
-def _(Seismic3DViewer, mo, seismic_3d):
+def _(mo, plt, seismic_3d):
+    _f, _ax = plt.subplots(1, 2, figsize=(10, 7), layout="tight", sharey=True)
+    _ax[0].set_title("Crossline Section")
+    _ax[1].set_title("Inline Section")
+    _ax[0].imshow(seismic_3d[:, 50, :].T, cmap="seismic", aspect="equal")
+    _ax[0].grid()
+    _ax[0].set_xlabel("INLINE INDEX"); _ax[0].set_ylabel("Two Way Travel Time (TWT) Sample")
+    _ax[1].imshow(seismic_3d[50, :, :].T, cmap="seismic", aspect="equal")
+    _ax[1].grid()
+    _ax[1].set_xlabel("CROSSLINE INDEX")
+    mo.as_html(plt.gcf()).center()
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+    import segfast as sg
+    import polars as pl
+    from pathlib import Path
+    return Path, np
+
+
+@app.cell
+def _():
+    import marimo as mo
+    return (mo,)
+
+
+@app.cell(column=2)
+def _(mo):
+    mo.md(r"""
+    # Demo 2 - threey
+    """).center()
+    return
+
+
+@app.cell
+def _():
+    from threey import Seismic3DViewer
+    return (Seismic3DViewer,)
+
+
+@app.cell
+def _(Seismic3DViewer, mo, np, segy_data, seismic_3d):
+    mo.stop(not segy_data)
+    mo.stop(not isinstance(seismic_3d, np.ndarray))
 
     vmin, vmax = seismic_3d.data.min(), seismic_3d.data.max()
 
@@ -320,27 +386,6 @@ def _(Seismic3DViewer, mo, seismic_3d):
     )
     area
     return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    import numpy as np
-    import segfast as sg
-    import polars as pl
-    from pathlib import Path
-    from threey import Seismic3DViewer
-    return Path, Seismic3DViewer, np
-
-
-@app.cell
-def _():
-    import marimo as mo
-    return (mo,)
 
 
 if __name__ == "__main__":
