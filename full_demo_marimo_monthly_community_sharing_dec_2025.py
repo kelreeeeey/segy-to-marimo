@@ -1,10 +1,38 @@
 import marimo
 
 __generated_with = "0.18.4"
-app = marimo.App(width="medium", sql_output="polars")
+app = marimo.App(width="columns", sql_output="polars")
+
+
+@app.cell(column=0)
+def _(mo):
+    mo.md(r"""
+    ## Utility, more like a small wrapper
+
+    source: https://github.com/kelreeeeey/segy-to-marimo
+
+    it only needs:
+    - `numpy`
+    - `polars`
+    - [`segfast`](https://github.com/analysiscenter/segfast)
+    - matplotlib & threey (optional)
+
+    Also Marimo Snippet Snippets:
+
+    Two snippets I use in this demo: https://github.com/kelreeeeey/segy-to-marimo/tree/main/snippets
+    """)
+    return
 
 
 @app.cell
+def _(mo):
+    the_wrapper = mo.watch.file("./thewrapper.py")
+
+    mo.ui.code_editor(the_wrapper.read_text())
+    return
+
+
+@app.cell(column=1)
 def _(Path, mo):
     SEGYDATA_PATH = list(Path("./example-data").rglob("*.sgy")) + list(Path("./example-data").rglob("*.segy"))
     SEGYDATA_PATH = {x.name:x for x in SEGYDATA_PATH}
@@ -45,11 +73,16 @@ def _(get_textual_header, inspect_trace_header, mo, segy_data):
 
 
 @app.cell
-def _(SEGY_FILE_SELECTIONS, mo, non_zero_headers, segy_data, text_header):
-    mo.stop(not segy_data, SEGY_FILE_SELECTIONS.center())
+def _(SEGY_FILE_SELECTIONS):
+    SEGY_FILE_SELECTIONS.center()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo, non_zero_headers, segy_data, text_header):
+    mo.stop(not segy_data)
     mo.vstack(
         [
-            SEGY_FILE_SELECTIONS.center(),
             mo.md("""## Header and Trace Geometry Inspections. <b style="color:red">Please read the Textual header first!</b>
             ---
 
@@ -75,54 +108,58 @@ def _(
     mo,
     non_zero_headers,
 ):
-    mo.vstack([mo.hstack(
+    mo.vstack(
         [
-            mo.vstack([UI_INLINE_3D_MAP_TO, MIN_IL])
-            if not UI_INLINE_3D_MAP_TO.value or not MIN_IL.value
-            else mo.vstack(
+            mo.hstack(
                 [
-                    UI_INLINE_3D_MAP_TO,
-                    MIN_IL,
-                    mo.md(f"---\n\n### {UI_INLINE_3D_MAP_TO.value}"),
-                    non_zero_headers[UI_INLINE_3D_MAP_TO.value].describe(),
-                ]
+                    mo.vstack([UI_INLINE_3D_MAP_TO, MIN_IL])
+                    if not UI_INLINE_3D_MAP_TO.value or not MIN_IL.value
+                    else mo.vstack(
+                        [
+                            UI_INLINE_3D_MAP_TO,
+                            MIN_IL,
+                            mo.md(f"---\n\n### {UI_INLINE_3D_MAP_TO.value}"),
+                            non_zero_headers[UI_INLINE_3D_MAP_TO.value].describe(),
+                        ]
+                    ),
+                    mo.vstack([UI_CROSSLINE_3D_MAP_TO, MIN_XL])
+                    if not UI_CROSSLINE_3D_MAP_TO.value or not MIN_XL.value
+                    else mo.vstack(
+                        [
+                            UI_CROSSLINE_3D_MAP_TO,
+                            MIN_XL,
+                            mo.md(f"---\n\n### {UI_CROSSLINE_3D_MAP_TO.value}"),
+                            non_zero_headers[UI_CROSSLINE_3D_MAP_TO.value].describe(),
+                        ]
+                    ),
+                ],
+                widths=[0.5, 0.5],
             ),
-            mo.vstack([UI_CROSSLINE_3D_MAP_TO, MIN_XL])
-            if not UI_CROSSLINE_3D_MAP_TO.value or not MIN_XL.value
-            else mo.vstack(
+            mo.hstack(
                 [
-                    UI_CROSSLINE_3D_MAP_TO,
-                    MIN_XL,
-                    mo.md(f"---\n\n### {UI_CROSSLINE_3D_MAP_TO.value}"),
-                    non_zero_headers[UI_CROSSLINE_3D_MAP_TO.value].describe(),
-                ]
+                    UI_COORDINATE_X_MAP_TO
+                    if not UI_COORDINATE_X_MAP_TO.value
+                    else mo.vstack(
+                        [
+                            UI_COORDINATE_X_MAP_TO,
+                            mo.md(f"---\n\n### {UI_COORDINATE_X_MAP_TO.value}"),
+                            non_zero_headers[UI_COORDINATE_X_MAP_TO.value].describe(),
+                        ]
+                    ),
+                    UI_COORDINATE_Y_MAP_TO
+                    if not UI_COORDINATE_Y_MAP_TO.value
+                    else mo.vstack(
+                        [
+                            UI_COORDINATE_Y_MAP_TO,
+                            mo.md(f"---\n\n### {UI_COORDINATE_Y_MAP_TO.value}"),
+                            non_zero_headers[UI_COORDINATE_Y_MAP_TO.value].describe(),
+                        ]
+                    ),
+                ],
+                widths=[0.5, 0.5],
             ),
-        ],
-        widths=[0.5, 0.5],
-    ),
-    mo.hstack(
-        [
-            UI_COORDINATE_X_MAP_TO
-            if not UI_COORDINATE_X_MAP_TO.value
-            else mo.vstack(
-                [
-                    UI_COORDINATE_X_MAP_TO,
-                    mo.md(f"---\n\n### {UI_COORDINATE_X_MAP_TO.value}"),
-                    non_zero_headers[UI_COORDINATE_X_MAP_TO.value].describe(),
-                ]
-            ),
-            UI_COORDINATE_Y_MAP_TO
-            if not UI_COORDINATE_Y_MAP_TO.value
-            else mo.vstack(
-                [
-                    UI_COORDINATE_Y_MAP_TO,
-                    mo.md(f"---\n\n### {UI_COORDINATE_Y_MAP_TO.value}"),
-                    non_zero_headers[UI_COORDINATE_Y_MAP_TO.value].describe(),
-                ]
-            ),
-        ],
-        widths=[0.5, 0.5],
-    )])
+        ]
+    ).callout()
     return
 
 
@@ -186,8 +223,8 @@ def _(MIN_IL, MIN_XL, coordinates_mapper, geometry_identifier, segy_data):
 
 
 @app.cell
-def _(trace_header):
-    trace_header
+def _(mo, trace_header):
+    mo.vstack([mo.md("Fetched Trace Header"), trace_header])
     return
 
 
@@ -250,12 +287,54 @@ def _(mo, time_slice_plot, traces_plot):
 
 
 @app.cell
+def _(Seismic3DViewer, mo, seismic_3d):
+
+    vmin, vmax = seismic_3d.data.min(), seismic_3d.data.max()
+
+    # the widget takes memoryview of both the seismic data & the label
+    sample_cube = memoryview(seismic_3d.data.transpose((2, 0, 1))[:350, :, :])
+
+    labels = {}
+    kwargs_labels = {} # store the colormap and alpha for the label here!
+
+    _dimensions = dict(
+        inline=sample_cube.shape[1],
+        crossline=sample_cube.shape[2],
+        depth=sample_cube.shape[0]
+    )
+
+    area = mo.ui.anywidget(
+        Seismic3DViewer(
+            data_source = sample_cube,
+            cmap_data = "seismic", # default to "seismic"
+            dark_mode=False if mo.app_meta().theme != "dark" else True,
+            labels=labels,
+            kwargs_labels=kwargs_labels,
+            show_label= False,
+            vmin = vmin,
+            vmax = vmax,
+            is_2d_view = False, # default to True
+            dimensions=_dimensions,
+            height=500
+        )
+    )
+    area
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
 def _():
     import numpy as np
     import segfast as sg
     import polars as pl
     from pathlib import Path
-    return Path, np
+    from threey import Seismic3DViewer
+    return Path, Seismic3DViewer, np
 
 
 @app.cell
