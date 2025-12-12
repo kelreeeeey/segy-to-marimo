@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.3"
+__generated_with = "0.18.4"
 app = marimo.App(width="full", sql_output="polars")
 
 
@@ -36,7 +36,7 @@ def _(mo):
 
 
 @app.cell
-def _(json, mo, datadir):
+def _(datadir, json, mo, os):
     with (
         open(os.path.join(datadir, "data_segysak_urls.json"), "r") as _f,
         open(os.path.join(datadir, "open_data_new_zealand.json"), "r") as _ff,
@@ -59,7 +59,7 @@ def _(fetch_button, mo, select_data):
 
 @app.cell
 def _(datadir, fetch_button, mo, os, req, select_data):
-    mo.stop(not select_data.value, mo.md("Select data to fetch!"))
+    mo.stop(not select_data.value)
     _mode = mo.app_meta().mode
     if fetch_button.value:
         for _file_name, _url in map(lambda x: (x['name'], x['link']), select_data.value):
